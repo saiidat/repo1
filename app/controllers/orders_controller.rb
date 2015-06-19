@@ -16,17 +16,21 @@ class OrdersController < ApplicationController
     @listing = Listing.find(params[:listing_id])
   end
 
+
+
   # POST /orders
   # POST /orders.json
-  def create
+    def create
     @order = Order.new(order_params)
     @listing = Listing.find(params[:listing_id])
     @seller = @listing.user
+   
 
     @order.listing_id = @listing.id
     @order.buyer_id = current_user.id
     @order.seller_id = @seller.id
 
+require "Stripe"
      Stripe.api_key = ENV["STRIPE_API_KEY"]
     token = params[:stripeToken]
 
@@ -34,7 +38,7 @@ class OrdersController < ApplicationController
       charge = Stripe::Charge.create(
         :amount => (@listing.price * 100).floor,
         :currency => "usd",
-        :card => token
+        :source => token
         )
       flash[:notice] = "Thanks for ordering!"
     rescue Stripe::CardError => e
@@ -60,6 +64,6 @@ class OrdersController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def order_params
-      params.require(:order).permit(:address, :city, :state)
+      params.require(:order).permit(:address, :city, :state, :image, :name, :price, )
     end
 end
